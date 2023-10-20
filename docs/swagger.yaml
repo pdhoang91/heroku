@@ -1,0 +1,71 @@
+definitions:
+  model.SuccessResponse:
+    type: object
+    properties:
+      status:
+        type: string
+      code:
+        type: integer
+      data:
+        type: object
+        properties:
+          user_id:
+            type: integer
+          name:
+            type: string
+          accounts:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                user_id:
+                  type: integer
+                name:
+                  type: string
+                balance:
+                  type: integer
+          balance:
+            type: number
+            format: float
+  model.ErrorResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+info:
+  contact: {}
+paths:
+  /v1/users/{user_id}:
+    get:
+      consumes:
+      - application/json
+      description: get user info by user_id
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Can not find user_id
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: get user info
+      tags:
+      - v1
+swagger: "2.0"

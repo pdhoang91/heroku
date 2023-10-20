@@ -1,0 +1,13 @@
+version: '3'
+services:
+  app:
+    container_name: heroku
+    image: golang:1.19.3-alpine
+    ports:
+      - "${PORT}:80"
+    volumes:
+      - .:/go/src/mfv
+    working_dir: /go/src/mfv
+    command: >
+      sh -c "go run cmd/main.go"
+#    restart: always
