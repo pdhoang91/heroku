@@ -8,6 +8,5 @@ services:
     volumes:
       - .:/go/src/mfv
     working_dir: /go/src/mfv
-    command: >
-      sh -c "go run cmd/main.go"
-#    restart: always
+    command: "go run cmd/main.go"
+    restart: always
