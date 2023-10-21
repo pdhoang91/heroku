@@ -21,8 +21,8 @@ type UserController struct {
 // @Tags v1
 // @Accept json
 // @Produce json
-// @Success 200 {object} model.APIResponse
-// @Failure 400 {object} model.APIResponse
+// @Success 200 {object} model.SuccessResponse
+// @Failure 400 {object} model.ErrorResponse
 // @Router /v1/users/{user_id} [get]
 func (uc *UserController) GetUserInfo(ctx *gin.Context) {
 	userIDStr := ctx.Param("user_id")
