@@ -12,7 +12,10 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-var numberOfWorker = 5
+const (
+	NumberOfWorker         = 5
+	ErrAccountUserNotFound = "Account of user [%d] not found"
+)
 
 type IUserUseCase struct {
 	UserRepository repo.UserRepository
@@ -54,7 +57,7 @@ func (uc *IUserUseCase) GetUserInfo(userID int) (*model.UserInfo, error) {
 	}
 
 	if accountsErr != nil || accounts == nil {
-		return nil, iError.NewErrorHandler(http.StatusInternalServerError, fmt.Sprintf("Account of user [%d] not found", userID))
+		return nil, iError.NewErrorHandler(http.StatusInternalServerError, fmt.Sprintf(ErrAccountUserNotFound, userID))
 	}
 
 	// Calculate the balance using the strategy pattern
@@ -93,7 +96,7 @@ func (uc *IUserUseCase) GetAllUserInfo() ([]*model.UserInfo, error) {
 
 	close(userQueue)
 
-	for i := 0; i < numberOfWorker; i++ {
+	for i := 0; i < NumberOfWorker; i++ {
 		wg.Add(1)
 		go uc.worker(&wg, userQueue, userInfoChan, errChan)
 
@@ -132,7 +135,7 @@ func (uc *IUserUseCase) processUser(user *entities.User) (*model.UserInfo, error
 	accounts, err := uc.UserRepository.GetUserAccounts(user.ID)
 	if err != nil || accounts == nil {
 		log.Printf("Account of user [%d] not found", user.ID)
-		return nil, iError.NewErrorHandler(http.StatusInternalServerError, fmt.Sprintf("Account of user [%d] not found", user.ID))
+		return nil, iError.NewErrorHandler(http.StatusInternalServerError, fmt.Sprintf(ErrAccountUserNotFound, user.ID))
 	}
 
 	// Calculate the balance using the strategy pattern
