@@ -64,6 +64,11 @@ func AuthMiddleware(ctx *gin.Context) {
 func isAuthenticated(ctx *gin.Context) (bool, error) {
 	authHeader := ctx.GetHeader("Authorization")
 
+	//Actually, here we can use gin's BasicAuth. But I found that gin's parseBasicAuth function returned errors that were not detailed,
+	//So I wrote a separate code to catch more detailed errors.
+	//ctx.Request.BasicAuth()
+	// parseBasicAuth
+
 	// Check if the header is empty
 	if authHeader == "" {
 		// No credentials provided
