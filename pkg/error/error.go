@@ -15,3 +15,9 @@ func NewErrorHandler(code int, message string) ErrorHandler {
 		Message: message,
 	}
 }
+
+func NewError(message string) ErrorHandler {
+	return ErrorHandler{
+		Message: message,
+	}
+}

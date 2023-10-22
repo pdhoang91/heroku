@@ -66,7 +66,51 @@ var doc = `{
                     }
                 }
             }
-        }    
+        },
+        "/v1/admin/users": {
+            "get": {
+                "description": "Get all user infor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1/admin"
+                ],
+                "summary": "Get all user information",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Can not get all user info",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }      
     },
     "definitions": {
         "model.SuccessResponse": {
@@ -107,7 +151,7 @@ var doc = `{
                                 }
                             }
                         },
-                        "balance": {
+                        "total_balance": {
                             "type": "integer"
                         }
                     }
@@ -117,6 +161,9 @@ var doc = `{
         "model.ErrorResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "code": {
                     "type": "integer"
                 },

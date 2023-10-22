@@ -59,3 +59,13 @@ func (ur *IUserRepo) GetUserAccounts(userID int) ([]*entities.Account, error) {
 	}
 	return accounts, nil
 }
+
+func (ur *IUserRepo) GetAllUser() ([]*entities.User, error) {
+	url := fmt.Sprintf("%s/users", config.BaseAPIURL)
+	var users []*entities.User
+	err := sendHTTPRequest(url, &users)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
+}

@@ -23,6 +23,11 @@ func (m *MockUserRepository) GetUserAccounts(userID int) ([]*entities.Account, e
 	return args.Get(0).([]*entities.Account), args.Error(1)
 }
 
+func (m *MockUserRepository) GetAllUser() ([]*entities.User, error) {
+	args := m.Called()
+	return args.Get(0).([]*entities.User), args.Error(1)
+}
+
 // Mock Balance Calculator
 type MockBalanceCalculator struct {
 	mock.Mock

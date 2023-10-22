@@ -7,6 +7,8 @@ import (
 
 type UserUseCase interface {
 	GetUserInfo(id int) (*model.UserInfo, error)
+
+	GetAllUserInfo() ([]*model.UserInfo, error)
 }
 
 type BalanceCalculator interface {

@@ -50,6 +50,50 @@
                     }
                 }
             }
+        },
+        "/v1/admin/users": {
+            "get": {
+                "description": "Get all user infor",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "v1"
+                ],
+                "summary": "Get all user infor",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Authorization",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/model.SuccessResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Can not find user_id",
+                        "schema": {
+                            "$ref": "#/definitions/model.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -91,7 +135,7 @@
                                 }
                             }
                         },
-                        "balance": {
+                        "total_balance": {
                             "type": "number",
                             "format": "integer"
                         }
@@ -102,6 +146,9 @@
         "model.ErrorResponse": {
             "type": "object",
             "properties": {
+                "status": {
+                    "type": "string"
+                },
                 "code": {
                     "type": "integer"
                 },

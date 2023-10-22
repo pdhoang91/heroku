@@ -13,6 +13,7 @@ type Controller struct {
 func (h *Controller) Success(ctx *gin.Context, data interface{}) {
 	response := model.SuccessResponse{
 		Status: "success",
+		Code:   http.StatusOK,
 		Data:   data,
 	}
 	ctx.JSON(http.StatusOK, response)

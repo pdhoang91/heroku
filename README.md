@@ -18,6 +18,8 @@ git clone https://github.com/pdhoang91/heroku.git
 # Test application 
 - Using swagger to test endpoints API. You can access `http://127.0.0.1:{PORT}/swagger/index.html`
 - Using postman to testing: ```curl --location 'http://localhost:80/v1/users/1'```
+- We provide an API get all user information for user admin. To call this api you need a basic token : `Basic cGRob2FuZzkxQGdtYWlsLmNvbTptb25leV9mb3J3YXJkX3ZpZXRuYW0=`
+- Using postman to testing: ```curl --location 'http://localhost:80/v1/admin/users' \--header 'Content-Type: application/json' \--header 'Authorization: Basic cGRob2FuZzkxQGdtYWlsLmNvbTptb25leV9mb3J3YXJkX3ZpZXRuYW0='```
 
 # Run Unittest
 - Please stand at project root folder and run `go test ./...` or `go test --cover ./...`

@@ -21,6 +21,11 @@ func (m *MockUserUseCase) GetUserInfo(userID int) (*model.UserInfo, error) {
 	return args.Get(0).(*model.UserInfo), args.Error(1)
 }
 
+func (m *MockUserUseCase) GetAllUserInfo() ([]*model.UserInfo, error) {
+	args := m.Called()
+	return args.Get(0).([]*model.UserInfo), args.Error(1)
+}
+
 func TestUserController_GetUserInfo(t *testing.T) {
 	// Create a new instance of the UserController with a mock UserUseCase
 	mockUserUseCase := new(MockUserUseCase)

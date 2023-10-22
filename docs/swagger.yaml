@@ -26,12 +26,14 @@ definitions:
                   type: string
                 balance:
                   type: integer
-          balance:
+          total_balance:
             type: number
             format: float
   model.ErrorResponse:
     type: object
     properties:
+      status:
+        type: string
       code:
         type: integer
       message:
@@ -68,4 +70,33 @@ paths:
       summary: get user info
       tags:
       - v1
+  /v1/admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Get all user info
+      parameters:
+      - description: Authorization
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.SuccessResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+        "404":
+          description: Can not find user_id
+          schema:
+            $ref: '#/definitions/model.ErrorResponse'
+      summary: get user info
+      tags:
+      - v1/admin
 swagger: "2.0"
