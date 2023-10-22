@@ -1,60 +1,100 @@
 package controller
 
 import (
+	"heroku/internal/delivery/http/controller/mocks"
 	"heroku/internal/delivery/http/model"
+	"heroku/internal/usecase"
+	iError "heroku/pkg/error"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
-// Mock User UseCase
-type MockUserUseCase struct {
-	mock.Mock
-}
-
-func (m *MockUserUseCase) GetUserInfo(userID int) (*model.UserInfo, error) {
-	args := m.Called(userID)
-	return args.Get(0).(*model.UserInfo), args.Error(1)
-}
-
-func (m *MockUserUseCase) GetAllUserInfo() ([]*model.UserInfo, error) {
-	args := m.Called()
-	return args.Get(0).([]*model.UserInfo), args.Error(1)
-}
-
 func TestUserController_GetUserInfo(t *testing.T) {
-	// Create a new instance of the UserController with a mock UserUseCase
-	mockUserUseCase := new(MockUserUseCase)
-	controller := &UserController{
-		UserUseCase: mockUserUseCase,
+	type fields struct {
+		userUseCase usecase.UserUseCase
+	}
+	type args struct {
+		mockCtx func(ctx *gin.Context)
 	}
 
-	// Create a Gin router to simulate the HTTP request
-	router := gin.Default()
-	router.GET("/v1/users/:user_id", controller.GetUserInfo)
+	tests := []struct {
+		name             string
+		fields           fields
+		args             args
+		expectedResponse string
+		expectedStatus   int
+	}{
+		{
+			name: "Happy Case",
+			fields: fields{
+				userUseCase: func() usecase.UserUseCase {
+					mockService := &mocks.UserUseCase{}
+					mockService.On("GetUserInfo", 1).Return(&model.UserInfo{
+						UserID:  1,
+						Name:    "Alice",
+						Balance: 145000,
+					}, nil)
+					return mockService
+				}(),
+			},
+			args: args{
+				mockCtx: func(ctx *gin.Context) {
+					ctx.Params = gin.Params{
+						{Key: "user_id", Value: "1"},
+					}
+					ctx.Request = httptest.NewRequest(
+						http.MethodGet,
+						"/v1/users/1",
+						nil,
+					)
+				},
+			},
+			expectedResponse: "{\"status\":\"success\",\"code\":200,\"data\":{\"user_id\":1,\"name\":\"Alice\",\"accounts\":null,\"total_balance\":145000}}",
+			expectedStatus:   http.StatusOK,
+		},
+		{
+			name: "Case empty value",
+			fields: fields{
+				userUseCase: func() usecase.UserUseCase {
+					mockService := &mocks.UserUseCase{}
+					mockService.On("GetUserInfo", 0).Return(nil, iError.NewErrorHandler(400, "User [0] not found"))
+					return mockService
+				}(),
+			},
+			args: args{
+				mockCtx: func(ctx *gin.Context) {
+					ctx.Params = gin.Params{
+						{Key: "user_id", Value: "0"},
+					}
+					ctx.Request = httptest.NewRequest(
+						http.MethodGet,
+						"/v1/users/0",
+						nil,
+					)
+				},
+			},
+			expectedResponse: "{\"status\":\"error\",\"code\":400,\"message\":\"User [0] not found\"}",
+			expectedStatus:   http.StatusBadRequest,
+		},
+	}
 
-	// Test case 1: Valid user ID
-	mockUserUseCase.On("GetUserInfo", 1).Return(&model.UserInfo{}, nil)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+			ctx, _ := gin.CreateTestContext(w)
 
-	w := httptest.NewRecorder()
-	req, _ := http.NewRequest("GET", "/v1/users/1", nil)
-	router.ServeHTTP(w, req)
+			c := &UserController{
+				UserUseCase: tt.fields.userUseCase,
+			}
+			tt.args.mockCtx(ctx)
 
-	// Assert that the HTTP status code is 200 (Success)
-	assert.Equal(t, http.StatusOK, w.Code)
-
-	// Test case 2: Invalid user ID (not a number)
-	w = httptest.NewRecorder()
-	req, _ = http.NewRequest("GET", "/v1/users/invalid", nil)
-	router.ServeHTTP(w, req)
-
-	// Assert that the HTTP status code is 400 (Bad Request)
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-
-	// Assert that the Failure method was called for the error case
-	mockUserUseCase.AssertExpectations(t)
+			c.GetUserInfo(ctx)
+			assert.Equal(t, tt.expectedResponse, w.Body.String())
+			assert.Equal(t, tt.expectedStatus, w.Code)
+		})
+	}
 }

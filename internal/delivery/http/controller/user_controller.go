@@ -50,7 +50,7 @@ func (uc *UserController) GetUserInfo(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {object} model.SuccessResponse
 // @Failure 400 {object} model.ErrorResponse
-// @Router /v1/admin/users[get]
+// @Router /v1/admin/users [get]
 func (uc *UserController) GetAllUserInfo(ctx *gin.Context) {
 	userInfo, err := uc.UserUseCase.GetAllUserInfo()
 	if err != nil {

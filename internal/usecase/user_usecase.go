@@ -12,6 +12,8 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
+var numberOfWorker = 5
+
 type IUserUseCase struct {
 	UserRepository repo.UserRepository
 	BalanceCalc    BalanceCalculator
@@ -72,35 +74,77 @@ func (uc *IUserUseCase) GetUserInfo(userID int) (*model.UserInfo, error) {
 func (uc *IUserUseCase) GetAllUserInfo() ([]*model.UserInfo, error) {
 
 	var allUserInfo []*model.UserInfo
-	var users []*entities.User
-	var accounts []*entities.Account
-
-	//var wg sync.WaitGroup
 
 	users, err := uc.UserRepository.GetAllUser()
-
-	if err != nil {
+	if err != nil || len(users) == 0 {
 		return nil, iError.NewErrorHandler(http.StatusInternalServerError, "User not found")
 	}
 
+	userQueue := make(chan *entities.User, len(users))
+	userInfoChan := make(chan *model.UserInfo, len(users))
+	errChan := make(chan error, len(users))
+
+	// Use a WaitGroup to wait for all goroutines to finish
+	var wg sync.WaitGroup
+
 	for _, user := range users {
-		accounts, err = uc.UserRepository.GetUserAccounts(user.ID)
-		if err != nil || accounts == nil {
-			log.Print(fmt.Sprintf("Account of user [%d] not found", user.ID))
-		}
-		// Calculate the balance using the strategy pattern
-		balance := uc.BalanceCalc.CalculateBalance(accounts)
+		userQueue <- user
+	}
 
-		// Build and return the user information
-		userInfo := model.UserInfo{
-			UserID:   user.ID,
-			Name:     user.Name,
-			Accounts: accounts,
-			Balance:  balance,
-		}
+	close(userQueue)
 
-		allUserInfo = append(allUserInfo, &userInfo)
+	for i := 0; i < numberOfWorker; i++ {
+		wg.Add(1)
+		go uc.worker(&wg, userQueue, userInfoChan, errChan)
+
+	}
+
+	wg.Wait()
+	close(userInfoChan)
+	close(errChan)
+
+	// Collect user info and errors
+	for userInfo := range userInfoChan {
+		allUserInfo = append(allUserInfo, userInfo)
+	}
+
+	// Handle errors if any
+	for err := range errChan {
+		log.Print("Error while getting account info:", err)
 	}
 
 	return allUserInfo, nil
+}
+
+func (uc *IUserUseCase) worker(wg *sync.WaitGroup, userQueue <-chan *entities.User, userInfoChan chan<- *model.UserInfo, errChan chan<- error) {
+	defer wg.Done()
+	for user := range userQueue {
+		userInfo, err := uc.processUser(user)
+		if err != nil {
+			errChan <- err
+		} else {
+			userInfoChan <- userInfo
+		}
+	}
+}
+
+func (uc *IUserUseCase) processUser(user *entities.User) (*model.UserInfo, error) {
+	accounts, err := uc.UserRepository.GetUserAccounts(user.ID)
+	if err != nil || accounts == nil {
+		log.Printf("Account of user [%d] not found", user.ID)
+		return nil, iError.NewErrorHandler(http.StatusInternalServerError, fmt.Sprintf("Account of user [%d] not found", user.ID))
+	}
+
+	// Calculate the balance using the strategy pattern
+	balance := uc.BalanceCalc.CalculateBalance(accounts)
+
+	// Build user information
+	userInfo := &model.UserInfo{
+		UserID:   user.ID,
+		Name:     user.Name,
+		Accounts: accounts,
+		Balance:  balance,
+	}
+
+	return userInfo, nil
 }
