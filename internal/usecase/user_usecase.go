@@ -122,7 +122,7 @@ func (uc *IUserUseCase) GetAllUserInfo() ([]*model.UserInfo, error) {
 func (uc *IUserUseCase) worker(wg *sync.WaitGroup, userQueue <-chan *entities.User, userInfoChan chan<- *model.UserInfo, errChan chan<- error) {
 	defer wg.Done()
 	for user := range userQueue {
-		userInfo, err := uc.processUser(user)
+		userInfo, err := uc.getAccountDetail(user)
 		if err != nil {
 			errChan <- err
 		} else {
@@ -131,7 +131,7 @@ func (uc *IUserUseCase) worker(wg *sync.WaitGroup, userQueue <-chan *entities.Us
 	}
 }
 
-func (uc *IUserUseCase) processUser(user *entities.User) (*model.UserInfo, error) {
+func (uc *IUserUseCase) getAccountDetail(user *entities.User) (*model.UserInfo, error) {
 	accounts, err := uc.UserRepository.GetUserAccounts(user.ID)
 	if err != nil || accounts == nil {
 		log.Printf("Account of user [%d] not found", user.ID)
